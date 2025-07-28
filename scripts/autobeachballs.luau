@@ -15,12 +15,11 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
         end
 
         local data = HttpService:JSONDecode(response)
-        print(data)
-        print("hi")
+        for i,v in pairs(data) do
+            print(i,v)
+        end
         if not data.data then
-            print("hello")
             warn("Error")
-            print("what")
             return
         end
 
@@ -38,10 +37,10 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
     local cursor = ""
     while #jobIds ~= count and cursor ~= nil do
         local nextPageCursor = Main(jobIds, cursor)
-        print(nextPageCursor)
+        print("next page cursor: " .. nextPageCursor)
         cursor = nextPageCursor or ""
-        print(cursor)
-        print(#jobIds)
+        print("Cursor: " .. cursor)
+        print("Job ids: " .. #jobIds)
     end
     
     return jobIds
