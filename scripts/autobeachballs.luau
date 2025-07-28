@@ -41,6 +41,26 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
     return jobIds
 end
 
+local joinedServers = {}
+local joinedServersIsLoaded = true
+
+function LoadJoinedServers()
+    if isfile("JoinedServers") then
+        local data = readfile("JoinedServers")
+        if not data then
+            LoadJoinedServers()
+            return
+        end
+        joinedServers = HttpService:JSONDecode(data)
+    end
+end
+
+function SaveJoinedServers()
+    if joinedServersIsLoaded then
+        writefile("JoinedServers", HttpService:JSONEncode(joinedServers))
+    end
+end
+
 local LocalPlayer = game:GetService("Players").LocalPlayer
 repeat task.wait() until LocalPlayer:GetAttribute("LoadedX")
 local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
@@ -104,15 +124,13 @@ local jobIds = GetServerJobIds(game.PlaceId, SortOrder.Descending, true, serverA
 local index = 1
 local serverCooldown = 5 * 60 -- 5 minutes in seconds
 
+LoadJoinedServers()
+joinedServers[game.JobId] = os.time()
+SaveJoinedServers()
+
 while true do
     task.wait()
     local jobId = jobIds[index]
-    local joinedServers = {}
-
-    if isfile("JoinedServers") then
-        joinedServers = HttpService:JSONDecode(readfile("JoinedServers"))
-    end
-
     local lastJoinTime = joinedServers[jobId] or nil
     if lastJoinTime then
         if os.clock() - lastJoinTime > serverCooldown then
@@ -131,10 +149,7 @@ while true do
     local success, error = pcall(function()
         TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, LocalPlayer)
     end)
-    if success then
-        joinedServers[game.JobId] = os.clock()
-        writefile("JoinedServers", HttpService:JSONEncode(joinedServers))
-    else
+    if not success then
         print(error)
         index = index + 1
     end
