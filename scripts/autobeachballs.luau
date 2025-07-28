@@ -18,6 +18,9 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
 
         if data.errors then
             warn("Request Error:", data.errors.code)
+            if data.errors.code == 0 then
+                task.wait(30)
+            end
             return nil
         end
 
