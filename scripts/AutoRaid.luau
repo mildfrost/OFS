@@ -1,3 +1,8 @@
+if getgenv().AutoRaid_Loaded then
+    print("Already loaded!")
+    return
+end
+
 local LocalPlayer = game:GetService("Players").LocalPlayer
 repeat task.wait() until LocalPlayer:GetAttribute("LoadedX")
 
@@ -11,14 +16,40 @@ local ToolController = require(SharedModules.Controllers.ToolController)
 local ExtraFunctions = require(SharedModules.ExtraFunctions)
 local ToolsInfo = require(INDEXER.ToolsInfo)
 local bosses = workspace.__GAME.__Mobs.__Bosses
+local ClientBridge = require(ReplicatedStorage.BridgeNet.ClientBridge)
+local TOOL_EVENT2_BRIDGE = ClientBridge.from("TOOL_EVENT2")
+
+local Hook = {}
+Hook.Object = {}
+Hook.__index = Hook.Object
+
+function Hook.new(original, hook)
+	local object = setmetatable({}, Hook)
+    
+	object._original = original
+	object._hook = hook
+    object._old = nil
+
+    table.insert(getgenv().Hooks, object)
+
+	return object
+end
+
+function Hook.Object:Hook()
+    self._old = hookfunction(self._original, self._hook)
+end
+
+function Hook.Object:Unhook()
+    if self._old then
+        hookfunction(self._original, self._old)
+        self._old = nil
+    end
+end
 
 -- For character related info/functions
 local Character = {}
 -- For haki related info/functions
 local Haki = {Ken = {}, Buso = {}, Hao = {}}
--- For npnc related info/functions
-local Npc = {}
-Npc.Find = {}
 
 function Character.GetCharacter()
     return LocalPlayer.Character or nil
@@ -71,12 +102,9 @@ function Character.Teleport(cframe: CFrame)
     hrp.CFrame = cframe
 end
 
-function Character.Click()
-    local inputObject = {
-        UserInputType = Enum.UserInputType.MouseButton1
-    }
-    ToolController.UseTool("Combat", Enum.UserInputState.Begin, inputObject, nil, nil)
-    ToolController.UseTool("Combat", Enum.UserInputState.End, inputObject, nil, nil)
+function Character.Attack(tool)
+    local toolType = tool:GetAttribute("Type")
+    TOOL_EVENT2_BRIDGE:Fire("Combat", 1, false, tool, toolType)
 end
 
 function Character.UseSkill(tool: Tool, key: Enum.KeyCode, cframe: CFrame)
@@ -86,9 +114,9 @@ function Character.UseSkill(tool: Tool, key: Enum.KeyCode, cframe: CFrame)
         KeyCode = key
     }
     local toolInfo = ToolsInfo[tool.Name][key.Name]
-    local old = nil
+    local oldGetCurrentMouse = nil
 
-    old = hookfunction(ExtraFunctions.GetCurrentMouse, function(player, boolean, distanceAdd)
+    oldGetCurrentMouse = hookfunction(ExtraFunctions.GetCurrentMouse, function(player, boolean, distanceAdd)
         local LocalPlayer = game:GetService("Players").LocalPlayer
         local char = LocalPlayer.Character or nil
         if not char then return end
@@ -110,10 +138,14 @@ function Character.UseSkill(tool: Tool, key: Enum.KeyCode, cframe: CFrame)
         return ray and { ray.Position, direction } or { ray.Origin + ray.Direction * distance, ray.Direction }
     end)
 
+    local oldBodyControl = nil
+    oldBodyControl = hookfunction(ToolController.BodyControl, function() end)
+
     ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.Begin, inputObject, toolInfo)
     ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.End, inputObject, toolInfo)
 
-    hookfunction(ExtraFunctions.GetCurrentMouse, old)
+    hookfunction(ExtraFunctions.GetCurrentMouse, oldGetCurrentMouse)
+    hookfunction(ToolController.BodyControl, oldBodyControl)
 end
 
 function spoofDevice()
@@ -186,6 +218,8 @@ end
 
 ------- ACTUAL CODE ----------
 
+getgenv().AutoRaid_Target = nil
+
 local raids = {}
 for raidId, raidInfo in pairs(RaidsInfo) do
     local raid = {}
@@ -228,10 +262,12 @@ function farmBosses()
         if not config.Toggle then
             coroutine.yield()
         end
+
         local char = Character.GetCharacter()
         if not char then return end
+        local tool = Character.EquipTool(config.Weapon)
+        Character.Attack(tool)
         Haki.ActivateAll()
-        Character.Click()
         for _, boss: Model in pairs(bosses:GetChildren()) do
             local npcConfig: Configuration = boss:FindFirstChild("NpcConfiguration")
             if npcConfig then
@@ -240,7 +276,6 @@ function farmBosses()
                     if boss.PrimaryPart and boss.PrimaryPart.CFrame.Y > 0 then
                         Character.Teleport(boss.PrimaryPart.CFrame + Vector3.new(math.random(-5, 5), 40, math.random(-5, 5)))
                     end
-                    Character.EquipTool(config.Weapon)
                     local tool = char:FindFirstChildWhichIsA("Tool")
                     if tool then
                         Character.UseSkill(tool, Enum.KeyCode.Z, boss.PrimaryPart.CFrame)
@@ -253,6 +288,7 @@ function farmBosses()
     end
 end
 
+local farmCoro = coroutine.create(farmBosses)
 
 local Luna = loadstring(game:HttpGet("https://raw.githubusercontent.com/Nebula-Softworks/Luna-Interface-Suite/refs/heads/master/source.lua", true))()
 
@@ -323,12 +359,12 @@ local AutoRaidToggle = MainTab:CreateToggle({
             if not isInRaid() then
                 challengeRaid(raids[config.SelectedRaid].RaidId)
             else
-                if config.Toggle then
-                    local farmCoro = coroutine.create(farmBosses)
-                    local success, result = coroutine.resume(farmCoro)
-                    print(success, result)
-                end
+                local success, result = coroutine.resume(farmCoro)
+                print(success, result)
             end
         end
     end
 })
+
+
+getgenv().AutoRaid_Loaded = true
