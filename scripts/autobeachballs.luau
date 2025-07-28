@@ -84,7 +84,6 @@ while #beachBalls > 0 do
             hrp.CFrame = beachBall.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
             task.wait(0.2)
             fireproximityprompt(chestInteract)
-            task.wait(1)
         end
     end
     beachBalls = FindBeachBalls()
