@@ -118,6 +118,7 @@ while true do
                 jobIds = GetServerJobIds(game.PlaceId, SortOrder.Descending, true, serverAmount)
                 index = 1
             end
+            continue
         end
     end
 
