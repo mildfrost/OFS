@@ -16,12 +16,9 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
 
         local data = HttpService:JSONDecode(response)
 
-        if data.errors then
-            warn("Request Error:", data.errors.code)
-            if data.errors.code == 0 then
-                task.wait(30)
-            end
-            return nil
+        if not data.data then
+            warn("Error")
+            return
         end
 
         local servers = data.data
