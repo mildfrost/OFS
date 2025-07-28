@@ -48,10 +48,15 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 local PlayerGui = LocalPlayer.PlayerGui
 
 local LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
+local startTime = os.time()
+local timeout = 30 -- seconds
 
 while LoadingGui do
     task.wait()
     -- Play the game
+    if os.time() - startTime > timeout then
+        break
+    end
     local frame = LoadingGui:FindFirstChild("Frame")
     if frame then
         local play = frame:FindFirstChild("Play")
@@ -62,6 +67,9 @@ while LoadingGui do
         end
     end
     LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
+end
+if hrp.Anchored then
+    hrp.Anchored = false
 end
 
 function FindBeachBalls()
@@ -80,7 +88,7 @@ while #beachBalls > 0 do
     for _,beachBall in pairs(beachBalls) do
         local chestInteract = beachBall:FindFirstChild("ChestInteract")
         if chestInteract then
-            hrp.CFrame = beachBall.PrimaryPart.CFrame
+            hrp.CFrame = beachBall.PrimaryPart.CFrame + Vector3.new(0, 1, 0)
             --task.wait(0.2)
             fireproximityprompt(chestInteract)
         end
