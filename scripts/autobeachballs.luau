@@ -64,8 +64,6 @@ while LoadingGui do
     LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
 end
 
-task.wait(5)
-
 function FindBeachBalls()
     local beachBalls = {}
     for _,v in pairs(workspace:GetChildren()) do
