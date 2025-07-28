@@ -45,6 +45,25 @@ local LocalPlayer = game:GetService("Players").LocalPlayer
 repeat task.wait() until LocalPlayer:GetAttribute("LoadedX")
 local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
+local PlayerGui = LocalPlayer.PlayerGui
+
+local LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
+
+while LoadingGui do
+    task.wait()
+    -- Play the game
+    local frame = LoadingGui:FindFirstChild("Frame")
+    if frame then
+        local play = frame:FindFirstChild("Play")
+        if play then
+            for i,v in pairs(getconnections(play.Activated)) do
+                v:Fire()
+            end
+        end
+    end
+    LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
+end
+
 
 function FindBeachBalls()
     local beachBalls = {}
@@ -63,7 +82,7 @@ while #beachBalls > 0 do
         task.wait()
         local chestInteract = beachBall:FindFirstChild("ChestInteract")
         if chestInteract then
-            hrp.CFrame = beachBall.PrimaryPart.CFrame - Vector3.new(0, 10, 0)
+            hrp.CFrame = beachBall.PrimaryPart.CFrame - Vector3.new(0, 5, 0)
             task.wait(0.2)
             fireproximityprompt(chestInteract)
         end
