@@ -72,7 +72,6 @@ end
 
 repeat task.wait() until LocalPlayer:GetAttribute("LoadedX")
 local PlayerGui = LocalPlayer.PlayerGui
-local hrp = GetHumanoidRootPart()
 
 local LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
 local startTime = os.time()
@@ -95,6 +94,7 @@ while LoadingGui do
     end
     LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
 end
+local hrp = GetHumanoidRootPart()
 if hrp.Anchored then
     hrp.Anchored = false
 end
