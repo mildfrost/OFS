@@ -264,8 +264,9 @@ function farmBosses()
         end
 
         local char = Character.GetCharacter()
-        if not char then return end
+        if not char then continue end
         local tool = Character.EquipTool(config.Weapon)
+        if not tool then continue end
         Character.Attack(tool)
         Haki.ActivateAll()
         for _, boss: Model in pairs(bosses:GetChildren()) do
@@ -276,7 +277,6 @@ function farmBosses()
                     if boss.PrimaryPart and boss.PrimaryPart.CFrame.Y > 0 then
                         Character.Teleport(boss.PrimaryPart.CFrame + Vector3.new(math.random(-5, 5), 40, math.random(-5, 5)))
                     end
-                    local tool = char:FindFirstChildWhichIsA("Tool")
                     if tool then
                         Character.UseSkill(tool, Enum.KeyCode.Z, boss.PrimaryPart.CFrame)
                         Character.UseSkill(tool, Enum.KeyCode.X, boss.PrimaryPart.CFrame)
