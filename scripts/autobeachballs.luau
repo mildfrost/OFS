@@ -57,11 +57,22 @@ function SaveJoinedServers()
     end
 end
 
+
+
 local LocalPlayer = game:GetService("Players").LocalPlayer
+
+function GetCharacter()
+    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+function GetHumanoidRootPart()
+    local char = GetCharacter()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
 repeat task.wait() until LocalPlayer:GetAttribute("LoadedX")
-local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
 local PlayerGui = LocalPlayer.PlayerGui
+local hrp = GetHumanoidRootPart()
 
 local LoadingGui = PlayerGui:FindFirstChild("LoadingGui")
 local startTime = os.time()
@@ -104,6 +115,7 @@ while #beachBalls > 0 do
     for _,beachBall in pairs(beachBalls) do
         local chestInteract = beachBall:FindFirstChild("ChestInteract")
         if chestInteract then
+            hrp = GetHumanoidRootPart()
             hrp.CFrame = beachBall.PrimaryPart.CFrame + Vector3.new(0, 1, 0)
             --task.wait(0.2)
             fireproximityprompt(chestInteract)
@@ -111,7 +123,7 @@ while #beachBalls > 0 do
     end
     beachBalls = FindBeachBalls()
 end
-
+hrp = GetHumanoidRootPart()
 hrp.CFrame = CFrame.new(Vector3.new(0, 1000000, 0))
 
 local TeleportService = game:GetService("TeleportService")
