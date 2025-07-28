@@ -7,7 +7,7 @@ local SortOrder = {
 function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, count: number)
     local function Main(jobIds: table, cursor: string)
         local url = "https://games.roblox.com/v1/games/" .. tostring(placeId) .. "/servers/Public?cursor=" .. cursor .."&sortOrder=" .. sortOrder .. "&excludeFullGames=" .. tostring(excludeFullGames)
-        local response = game:HttpGet(url)
+        local response = game:HttpGet(url, false)
 
         if response == "" then
             warn("Couldn't request server info")
@@ -38,7 +38,6 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
     while #jobIds ~= count and cursor ~= nil do
         local nextPageCursor = Main(jobIds, cursor)
         cursor = nextPageCursor or ""
-        print("next page cursor: " .. nextPageCursor)
         print("Cursor: " .. cursor)
         print("Job ids: " .. #jobIds)
     end
