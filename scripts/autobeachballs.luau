@@ -7,7 +7,7 @@ local SortOrder = {
 function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, count: number)
     local function Main(jobIds: table, cursor: string)
         local url = "https://games.roblox.com/v1/games/" .. tostring(placeId) .. "/servers/Public?cursor=" .. cursor .."&sortOrder=" .. sortOrder .. "&excludeFullGames=" .. tostring(excludeFullGames)
-        local response = game:HttpGet(url, false)
+        local response = game:HttpGet(url, true)
 
         if response == "" then
             warn("Couldn't request server info")
