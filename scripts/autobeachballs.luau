@@ -39,7 +39,7 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
 
     local jobIds = {}
     local cursor = ""
-    while #jobIds ~= count and cursor ~= nil do
+    while #jobIds ~= count and cursor ~= "" do
         local nextPageCursor = Main(jobIds, cursor)
         cursor = nextPageCursor or ""
         print("Cursor: " .. cursor)
