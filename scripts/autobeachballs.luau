@@ -138,6 +138,10 @@ SaveJoinedServers()
 
 while true do
     task.wait()
+    if #jobIds == 0 then
+        jobIds = GetServerJobIds(game.PlaceId, SortOrder.Descending, true, serverAmount)
+        continue
+    end
     local jobId = jobIds[index]
     local lastJoinTime = joinedServers[jobId] or nil
     if lastJoinTime then
