@@ -17,7 +17,7 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
         local data = HttpService:JSONDecode(response)
         for i,v in pairs(data) do
             if i == "errors" then
-                for a,b in pairs(v) do
+                for a,b in pairs(v[1]) do
                     print(a,b)
                 end
             end
