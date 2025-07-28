@@ -81,7 +81,7 @@ while #beachBalls > 0 do
         local chestInteract = beachBall:FindFirstChild("ChestInteract")
         if chestInteract then
             hrp.CFrame = beachBall.PrimaryPart.CFrame
-            task.wait(0.2)
+            --task.wait(0.2)
             fireproximityprompt(chestInteract)
         end
     end
