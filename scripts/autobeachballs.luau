@@ -15,7 +15,7 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
         end
 
         local data = HttpService:JSONDecode(response)
-
+        print(data)
         if not data.data then
             warn("Error")
             return
@@ -35,7 +35,10 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
     local cursor = ""
     while #jobIds ~= count and cursor ~= nil do
         local nextPageCursor = Main(jobIds, cursor)
+        print(nextPageCursor)
         cursor = nextPageCursor or ""
+        print(cursor)
+        print(#jobIds)
     end
     
     return jobIds
