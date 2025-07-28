@@ -44,6 +44,7 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
         cursor = nextPageCursor or ""
         print("Cursor: " .. cursor)
         print("Job ids: " .. #jobIds)
+        task.wait(0.5)
     end
     
     return jobIds
