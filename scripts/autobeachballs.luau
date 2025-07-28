@@ -16,8 +16,11 @@ function GetServerJobIds(placeId: number, sortOrder, excludeFullGames: boolean, 
 
         local data = HttpService:JSONDecode(response)
         print(data)
+        print("hi")
         if not data.data then
+            print("hello")
             warn("Error")
+            print("what")
             return
         end
 
