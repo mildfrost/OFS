@@ -47,10 +47,6 @@ local joinedServersIsLoaded = true
 function LoadJoinedServers()
     if isfile("JoinedServers") then
         local data = readfile("JoinedServers")
-        if not data then
-            LoadJoinedServers()
-            return
-        end
         joinedServers = HttpService:JSONDecode(data)
     end
 end
