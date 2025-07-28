@@ -79,13 +79,12 @@ local beachBalls = FindBeachBalls()
 while #beachBalls > 0 do
     task.wait()
     for _,beachBall in pairs(beachBalls) do
-        task.wait()
         local chestInteract = beachBall:FindFirstChild("ChestInteract")
         if chestInteract then
-            hrp.CFrame = beachBall.PrimaryPart.CFrame - Vector3.new(0, 5, 0)
+            hrp.CFrame = beachBall.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
             task.wait(0.2)
             fireproximityprompt(chestInteract)
-            task.wait(0.5)
+            task.wait(1)
         end
     end
     beachBalls = FindBeachBalls()
