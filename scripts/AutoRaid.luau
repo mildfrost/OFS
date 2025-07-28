@@ -266,7 +266,9 @@ function farmBosses()
         local char = Character.GetCharacter()
         if not char then continue end
         local tool = Character.EquipTool(config.Weapon)
+        print("1")
         if not tool then continue end
+        print("2")
         Character.Attack(tool)
         Haki.ActivateAll()
         for _, boss: Model in pairs(bosses:GetChildren()) do
