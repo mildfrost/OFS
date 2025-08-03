@@ -1,8 +1,3 @@
-if getgenv().AutoRaid_Loaded then
-    print("Already loaded!")
-    return
-end
-
 local LocalPlayer = game:GetService("Players").LocalPlayer
 repeat task.wait() until LocalPlayer:GetAttribute("LoadedX")
 
@@ -19,7 +14,6 @@ local bosses = workspace.__GAME.__Mobs.__Bosses
 local ClientBridge = require(ReplicatedStorage.BridgeNet.ClientBridge)
 local TOOL_EVENT2_BRIDGE = ClientBridge.from("TOOL_EVENT2")
 
--- For character related info/functions
 local Character = {}
 -- For haki related info/functions
 local Haki = {Ken = {}, Buso = {}, Hao = {}}
@@ -114,8 +108,11 @@ function Character.UseSkill(tool: Tool, key: Enum.KeyCode, cframe: CFrame)
     local oldBodyControl = nil
     oldBodyControl = hookfunction(ToolController.BodyControl, function() end)
 
-    ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.Begin, inputObject, toolInfo)
-    ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.End, inputObject, toolInfo)
+    pcall(function()
+        ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.Begin, inputObject, toolInfo)
+        ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.End, inputObject, toolInfo)
+    end)
+    
 
     hookfunction(ExtraFunctions.GetCurrentMouse, oldGetCurrentMouse)
     hookfunction(ToolController.BodyControl, oldBodyControl)
@@ -171,174 +168,58 @@ function Haki.ActivateAll()
     end
 end
 
-function isInRaid()
-    return game.PlaceId == 17333805250
+local bosses = workspace.__GAME.__Mobs.__Bosses
+
+for i,v in pairs(getconnections(game:GetService("Players").LocalPlayer.Idled)) do
+    v:Disable()
 end
 
-function challengeRaid(raidName)
-    local args = {
-        {
-            {
-                "\004",
-                "RaidStartParty",
-                raidName
-            }
-        }
-    }
-    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-
-end
-
-------- ACTUAL CODE ----------
-
-getgenv().AutoRaid_Target = nil
-
-local raids = {}
-for raidId, raidInfo in pairs(RaidsInfo) do
-    local raid = {}
-    local raidName = raidInfo[1]
-    raid.RequiredKeyId = raidInfo[2]
-    raid.RaidId = raidId
-    raids[raidName] = raid
-end
-
-local raidNames = {}
-for i, _ in pairs(raids) do
-    table.insert(raidNames, i)
-end
-
-local weaponNames = {}
-function refreshWeapons()
-    table.clear(weaponNames)
-    for _,weapon: Tool in pairs(Character.GetBackpackTools()) do
-        table.insert(weaponNames, weapon.Name)
-    end
-    for _,weapon: Tool in pairs(Character.GetEquippedTools()) do
-        table.insert(weaponNames, weapon.Name)
-    end
-end
-refreshWeapons()
-
-local config = {}
-if isfile("AutoRaidConfig") then
-    config = hs:JSONDecode(readfile("AutoRaidConfig"))
-else
-    config.SelectedRaid = raidNames[1]
-    config.Toggle = false
-    config.Weapon = weaponNames[1]
-end
-
-function farmBosses()
-    spoofDevice()
-    while true do
-        task.wait()
-        if not config.Toggle then
-            coroutine.yield()
+getgenv().farm = true
+while getgenv().farm do
+    task.wait()
+    local char = Character.GetCharacter()
+    if not char then continue end
+    Character.EquipTool("SStaff")
+    local tool = Character.GetEquippedTools()[1]
+    if not tool then continue end
+    Character.Attack(tool)
+    Haki.ActivateAll()
+    local spawnLocs = workspace.__GAME.__SpawnLocations
+    local target = nil
+    for _, boss in pairs(bosses:GetChildren()) do
+        local npcConfig = boss:FindFirstChild("NpcConfiguration")
+        if npcConfig and npcConfig:GetAttribute("Name") == "Alien Invader" and npcConfig:GetAttribute("Health") > 0 then
+            target = boss
+            break
         end
-
-        local char = Character.GetCharacter()
-        if not char then continue end
-        Character.EquipTool(config.Weapon)
-        local tool = Character.GetEquippedTools()[1]
-        if not tool then continue end
-        Character.Attack(tool)
-        Haki.ActivateAll()
-        for _, boss: Model in pairs(bosses:GetChildren()) do
-            local npcConfig: Configuration = boss:FindFirstChild("NpcConfiguration")
-            if npcConfig then
-                local health = npcConfig:GetAttribute("Health") or 0
-                if health > 0 then
-                    if boss.PrimaryPart and boss.PrimaryPart.CFrame.Y > 0 then
-                        Character.Teleport(boss.PrimaryPart.CFrame + Vector3.new(math.random(-5, 5), 40, math.random(-5, 5)))
-                    end
-                    if tool then
-                        Character.UseSkill(tool, Enum.KeyCode.Z, boss.PrimaryPart.CFrame)
-                        Character.UseSkill(tool, Enum.KeyCode.X, boss.PrimaryPart.CFrame)
-                        Character.UseSkill(tool, Enum.KeyCode.V, boss.PrimaryPart.CFrame)
-                    end
+    end
+    if target == nil then
+        local ball = nil
+        for _, v in pairs(workspace:GetChildren()) do
+            if v:IsA("Model") and string.match(v.Name, "Star") then
+                local proximityPrompt = v.Eat
+                local primaryPart = v.PrimaryPart
+                if primaryPart and proximityPrompt then
+                    ball = v
+                    Character.Teleport(primaryPart.CFrame)
+                    fireproximityprompt(proximityPrompt)
                 end
             end
         end
+        if not ball or ball.Parent ~= workspace then
+            Character.Teleport(spawnLocs:GetChildren()[1].CFrame)
+        end
+        continue
     end
-end
-
-local farmCoro = coroutine.create(farmBosses)
-
-local Luna = loadstring(game:HttpGet("https://raw.githubusercontent.com/Nebula-Softworks/Luna-Interface-Suite/refs/heads/master/source.lua", true))()
-
-local Window = Luna:CreateWindow({
-    Name = "One Fruit Simulator - Auto Raid",
-    Subtitle = nil,
-    Logo = nil,
-    LoadingEnabled = false,
-    ConfigSettings = {
-        RootFolder = nil,
-        ConfigFolder = "Auto Raid"
-    }
-})
-
-local MainTab = Window:CreateTab({
-    Name = "Auto Raids",
-    Icon = "home",
-    ImageSource = "Material",
-    ShowTitle = true
-})
-
-local RaidDropdown = MainTab:CreateDropdown({
-    Name = "Raids",
-    Description = nil,
-    MultipleOptions = false,
-    SpecialType = nil,
-    Options = raidNames,
-    CurrentOption = config.SelectedRaid,
-    Callback = function(raidName)
-        config.SelectedRaid = raidName
-        writefile("AutoRaidConfig", hs:JSONEncode(config))
-    end
-})
-
-local WeaponDropdown = MainTab:CreateDropdown({
-    Name = "Weapon",
-    Description = nil,
-    MultipleOptions = false,
-    SpecialType = nil,
-    Options = weaponNames,
-    CurrentOption = config.Weapon,
-    Callback = function(weaponName)
-        config.Weapon = weaponName
-        writefile("AutoRaidConfig", hs:JSONEncode(config))
-    end
-})
-
-local RefreshWeaponsButton = MainTab:CreateButton({
-    Name = "Refresh Weapons",
-    Description = nil,
-    Callback = function()
-        refreshWeapons()
-        WeaponDropdown:Set({
-            Options = weaponNames
-        })
-    end
-})
-
-local AutoRaidToggle = MainTab:CreateToggle({
-    Name = "Auto Raid",
-    Description = nil,
-    CurrentValue = config.Toggle,
-    Callback = function(toggle)
-        config.Toggle = toggle
-        writefile("AutoRaidConfig", hs:JSONEncode(config))
-
-        if config.Toggle then
-            if not isInRaid() then
-                challengeRaid(raids[config.SelectedRaid].RaidId)
-            else
-                local success, result = coroutine.resume(farmCoro)
-                print(success, result)
+    while target and target.Parent == bosses do
+        task.wait()
+        if target.PrimaryPart and target.PrimaryPart.CFrame.Y > 0 then
+            Character.Teleport(target.PrimaryPart.CFrame + Vector3.new(math.random(-5, 5), 40, math.random(-5, 5)))
+            if tool then
+                Character.UseSkill(tool, Enum.KeyCode.Z, target.PrimaryPart.CFrame)
+                Character.UseSkill(tool, Enum.KeyCode.X, target.PrimaryPart.CFrame)
+                Character.UseSkill(tool, Enum.KeyCode.V, target.PrimaryPart.CFrame)
             end
         end
     end
-})
-
-
-getgenv().AutoRaid_Loaded = true
+end
