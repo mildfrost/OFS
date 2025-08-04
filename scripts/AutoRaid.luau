@@ -245,7 +245,10 @@ function farmBosses()
                         if tool then
                             Character.UseSkill(tool, Enum.KeyCode.Z, boss.PrimaryPart.CFrame)
                             Character.UseSkill(tool, Enum.KeyCode.X, boss.PrimaryPart.CFrame)
+                            Character.UseSkill(tool, Enum.KeyCode.C, boss.PrimaryPart.CFrame)
                             Character.UseSkill(tool, Enum.KeyCode.V, boss.PrimaryPart.CFrame)
+                            Character.UseSkill(tool, Enum.KeyCode.B, boss.PrimaryPart.CFrame)
+                            Character.UseSkill(tool, Enum.KeyCode.F, boss.PrimaryPart.CFrame)
                         end
                     else
                         if config.AutoNamek then
