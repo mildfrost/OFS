@@ -229,8 +229,6 @@ function farmBosses()
             coroutine.yield()
         end
 
-        
-
         local char = Character.GetCharacter()
         if not char then continue end
         Character.EquipTool(config.Weapon)
