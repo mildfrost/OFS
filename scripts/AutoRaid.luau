@@ -222,11 +222,14 @@ end
 getgenv().farm = false
 
 function farmBosses()
+    local currentBoss = nil
     while true do
         task.wait()
         if not getgenv().farm then
             coroutine.yield()
         end
+
+        
 
         local char = Character.GetCharacter()
         if not char then continue end
@@ -236,6 +239,9 @@ function farmBosses()
         Character.Attack(tool)
         Haki.ActivateAll()
         for _, boss: Model in pairs(bosses:GetChildren()) do
+            if currentBoss and currentBoss.Parent == bosses then
+                boss = currentBoss
+            end
             local npcConfig: Configuration = boss:FindFirstChild("NpcConfiguration")
             if npcConfig then
                 local health = npcConfig:GetAttribute("Health") or 0
@@ -250,6 +256,7 @@ function farmBosses()
                             Character.UseSkill(tool, Enum.KeyCode.B, boss.PrimaryPart.CFrame)
                             Character.UseSkill(tool, Enum.KeyCode.F, boss.PrimaryPart.CFrame)
                         end
+                        continue
                     else
                         if config.AutoNamek then
                             local bossSpawns = workspace.__GAME.__Islands.__Bosses.NamekWorld.Spawns
@@ -260,9 +267,9 @@ function farmBosses()
                                 end
                             end
                         end
-                        
                     end
                 end
+                currentBoss = nil
             end
         end
     end
