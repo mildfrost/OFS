@@ -254,6 +254,7 @@ function farmBosses()
                             Character.UseSkill(tool, Enum.KeyCode.B, boss.PrimaryPart.CFrame)
                             Character.UseSkill(tool, Enum.KeyCode.F, boss.PrimaryPart.CFrame)
                         end
+                        currentBoss = boss
                         continue
                     else
                         if config.AutoNamek then
