@@ -174,7 +174,7 @@ for i,v in pairs(getconnections(game:GetService("Players").LocalPlayer.Idled)) d
     v:Disable()
 end
 
-getgenv().farm = true
+getgenv().farm = false
 while getgenv().farm do
     task.wait()
     local char = Character.GetCharacter()
@@ -210,15 +210,16 @@ while getgenv().farm do
             Character.Teleport(spawnLocs:GetChildren()[1].CFrame)
         end
         continue
-    end
-    while target and target.Parent == bosses do
-        task.wait()
+    elseif target and target.Parent == bosses then
         if target.PrimaryPart and target.PrimaryPart.CFrame.Y > 0 then
             Character.Teleport(target.PrimaryPart.CFrame + Vector3.new(math.random(-5, 5), 40, math.random(-5, 5)))
             if tool then
                 Character.UseSkill(tool, Enum.KeyCode.Z, target.PrimaryPart.CFrame)
                 Character.UseSkill(tool, Enum.KeyCode.X, target.PrimaryPart.CFrame)
+                Character.UseSkill(tool, Enum.KeyCode.C, target.PrimaryPart.CFrame)
                 Character.UseSkill(tool, Enum.KeyCode.V, target.PrimaryPart.CFrame)
+                Character.UseSkill(tool, Enum.KeyCode.B, target.PrimaryPart.CFrame)
+                Character.UseSkill(tool, Enum.KeyCode.F, target.PrimaryPart.CFrame)
             end
         end
     end
