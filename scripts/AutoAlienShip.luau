@@ -118,14 +118,6 @@ function Character.UseSkill(tool: Tool, key: Enum.KeyCode, cframe: CFrame)
     hookfunction(ToolController.BodyControl, oldBodyControl)
 end
 
-function spoofDevice()
-    local old = nil
-    old = hookfunction(ExtraFunctions.VerifyMobile, function()
-        return false
-    end)
-    return old
-end
-
 function Haki.Ken.IsActive()
     local char = Character.GetCharacter()
     if not char then return false end
@@ -174,7 +166,7 @@ for i,v in pairs(getconnections(game:GetService("Players").LocalPlayer.Idled)) d
     v:Disable()
 end
 
-getgenv().farm = false
+getgenv().farm = true
 while getgenv().farm do
     task.wait()
     local char = Character.GetCharacter()
