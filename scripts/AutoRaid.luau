@@ -18,6 +18,7 @@ local ToolsInfo = require(INDEXER.ToolsInfo)
 local bosses = workspace.__GAME.__Mobs.__Bosses
 local ClientBridge = require(ReplicatedStorage.BridgeNet.ClientBridge)
 local TOOL_EVENT2_BRIDGE = ClientBridge.from("TOOL_EVENT2")
+local REMOTE_EVENT_BRIDGE = ClientBridge.from("REMOTE_EVENT")
 
 -- For character related info/functions
 local Character = {}
@@ -114,19 +115,14 @@ function Character.UseSkill(tool: Tool, key: Enum.KeyCode, cframe: CFrame)
     local oldBodyControl = nil
     oldBodyControl = hookfunction(ToolController.BodyControl, function() end)
 
-    ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.Begin, inputObject, toolInfo)
-    ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.End, inputObject, toolInfo)
+    pcall(function()
+        ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.Begin, inputObject, toolInfo)
+        ToolController.UseSkill(tool, tool:GetAttribute("Type"), Enum.UserInputState.End, inputObject, toolInfo)
+    end)
+    
 
     hookfunction(ExtraFunctions.GetCurrentMouse, oldGetCurrentMouse)
     hookfunction(ToolController.BodyControl, oldBodyControl)
-end
-
-function spoofDevice()
-    local old = nil
-    old = hookfunction(ExtraFunctions.VerifyMobile, function()
-        return false
-    end)
-    return old
 end
 
 function Haki.Ken.IsActive()
@@ -176,17 +172,11 @@ function isInRaid()
 end
 
 function challengeRaid(raidName)
-    local args = {
-        {
-            {
-                "\004",
-                "RaidStartParty",
-                raidName
-            }
-        }
-    }
-    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+    REMOTE_EVENT_BRIDGE:Fire("RaidStartParty", raidName)
+end
 
+function namekRaid(type)
+    REMOTE_EVENT_BRIDGE:Fire("NamekRaid", type)
 end
 
 ------- ACTUAL CODE ----------
@@ -226,13 +216,15 @@ else
     config.SelectedRaid = raidNames[1]
     config.Toggle = false
     config.Weapon = weaponNames[1]
+    config.NamekType = "Hard"
+    config.AutoNamek = false;
 end
+getgenv().farm = false
 
 function farmBosses()
-    spoofDevice()
     while true do
         task.wait()
-        if not config.Toggle then
+        if not getgenv().farm then
             coroutine.yield()
         end
 
@@ -250,11 +242,22 @@ function farmBosses()
                 if health > 0 then
                     if boss.PrimaryPart and boss.PrimaryPart.CFrame.Y > 0 then
                         Character.Teleport(boss.PrimaryPart.CFrame + Vector3.new(math.random(-5, 5), 40, math.random(-5, 5)))
-                    end
-                    if tool then
-                        Character.UseSkill(tool, Enum.KeyCode.Z, boss.PrimaryPart.CFrame)
-                        Character.UseSkill(tool, Enum.KeyCode.X, boss.PrimaryPart.CFrame)
-                        Character.UseSkill(tool, Enum.KeyCode.V, boss.PrimaryPart.CFrame)
+                        if tool then
+                            Character.UseSkill(tool, Enum.KeyCode.Z, boss.PrimaryPart.CFrame)
+                            Character.UseSkill(tool, Enum.KeyCode.X, boss.PrimaryPart.CFrame)
+                            Character.UseSkill(tool, Enum.KeyCode.V, boss.PrimaryPart.CFrame)
+                        end
+                    else
+                        if config.AutoNamek then
+                            local bossSpawns = workspace.__GAME.__Islands.__Bosses.NamekWorld.Spawns
+                            for _,v in pairs(bossSpawns:GetDescendants()) do
+                                if v:IsA("BasePart") and v.Name == "spawn" then
+                                    Character.Teleport(v.CFrame)
+                                    task.wait()
+                                end
+                            end
+                        end
+                        
                     end
                 end
             end
@@ -333,9 +336,47 @@ local AutoRaidToggle = MainTab:CreateToggle({
             if not isInRaid() then
                 challengeRaid(raids[config.SelectedRaid].RaidId)
             else
+                getgenv().farm = true
                 local success, result = coroutine.resume(farmCoro)
                 print(success, result)
             end
+        else
+            getgenv().farm = false
+        end
+    end
+})
+
+local NamekDropdown = MainTab:CreateDropdown({
+    Name = "Namek raid type",
+    Description = nil,
+    MultipleOptions = false,
+    SpecialType = nil,
+    Options = {"Easy", "Normal", "Hard", "Insane"},
+    CurrentOption = config.NamekType,
+    Callback = function(namekType)
+        config.NamekType = namekType
+        writefile("AutoRaidConfig", hs:JSONEncode(config))
+    end
+})
+
+local AutoNamekToggle = MainTab:CreateToggle({
+    Name = "Auto Namek",
+    Description = nil,
+    CurrentValue = config.AutoNamek,
+    Callback = function(toggle)
+        config.AutoNamek = toggle
+        writefile("AutoRaidConfig", hs:JSONEncode(config))
+
+        if config.AutoNamek then
+            if not isInRaid() then
+                namekRaid(config.NamekType)
+            else
+                getgenv().farm = true
+                local success, result = coroutine.resume(farmCoro)
+                print(success, result)
+            end
+        else
+            getgenv().farm = false
         end
     end
 })
